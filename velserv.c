@@ -668,9 +668,9 @@ int main (int argc, char **argv)
    char com_mess[100];
 
    struct termios oldtio, newtio;       //place for old and new port settings for serial port
-   struct hostent *host;
-   struct sockaddr_in server_addr;
-   
+   struct addrinfo hints, *server_addr = NULL;
+   int gai_rc;
+   char port_string[6];
 
    pthread_t thread1, thread2, thread3;
    int  iret1, iret2, iret3;
@@ -840,23 +840,34 @@ signal(SIGPIPE, SIG_IGN);
 		##################################################################################################
 		*/
 
-		host = gethostbyname(IP_ADDRESS);
-		if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) 
+		memset(&hints, 0, sizeof(hints));
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		snprintf(port_string, sizeof(port_string), "%u", PORT);
+		gai_rc = getaddrinfo(IP_ADDRESS, port_string, &hints, &server_addr);
+		if (gai_rc != 0)
 		{
-            fprintf(stderr,"Velserv: error creating client socket\n");
-            exit(EXIT_FAILURE);
+			fprintf(stderr,"Velserv: cannot resolve %s:%s (%s)\n", IP_ADDRESS, port_string, gai_strerror(gai_rc));
+			exit(EXIT_FAILURE);
 		}
 
-		server_addr.sin_family = AF_INET;     
-		server_addr.sin_port = htons(PORT);   
-		server_addr.sin_addr = *((struct in_addr *)host->h_addr);
-		bzero(&(server_addr.sin_zero),8); 
+		if ((sock = socket(server_addr->ai_family, server_addr->ai_socktype, server_addr->ai_protocol)) == -1)
+		{
+			fprintf(stderr,"Velserv: error creating client socket\n");
+			freeaddrinfo(server_addr);
+			server_addr = NULL;
+			exit(EXIT_FAILURE);
+		}
 
-		if (connect(sock, (struct sockaddr *)&server_addr,sizeof(struct sockaddr)) == -1) 
+		if (connect(sock, server_addr->ai_addr, server_addr->ai_addrlen) == -1)
         {
 			fprintf(stderr,"Velserv: error connecting client to server\n");
+			freeaddrinfo(server_addr);
+			server_addr = NULL;
             exit(EXIT_FAILURE);
         }
+		freeaddrinfo(server_addr);
+		server_addr = NULL;
         
      
 		iret1 = pthread_create(&thread1, NULL, sock_to_com, NULL);
