@@ -557,7 +557,7 @@ void *server()
 			}
 		}
 	}
-	while (i < sizeof(ip_add_arr))
+	for (i = 0; i < (int)(sizeof(ip_add_arr) / sizeof(ip_add_arr[0])); i++)
 	{
 		free(ip_add_arr[i]);
 	}
