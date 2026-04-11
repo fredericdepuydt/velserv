@@ -416,6 +416,16 @@ void *server()
 						{
 							fprintf(stdout,"Velserv: accepting connection\n");
 						}
+						if (newfd >= (int)(sizeof(ip_add_arr) / sizeof(ip_add_arr[0])))
+						{
+							if (verbose>3)
+							{
+								fprintf(stderr,"Velserv: too many connections, rejecting socket %d\n", newfd);
+							}
+							close(newfd);
+							continue;
+						}
+
 						FD_SET(newfd, &master); /* add to master set */
 
 						if(newfd > fdmax)
