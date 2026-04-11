@@ -100,7 +100,7 @@ void *sock_to_com()
 {
    unsigned char buffer[100];
    unsigned char recv_data[1];
-   int start_recv = 0, valid, m, bytes_in_string, bytes_recieved;
+   int start_recv = 0, valid = 0, m = 0, bytes_in_string = 0, bytes_recieved;
    char message[8];
    
 	while(1)
@@ -170,7 +170,7 @@ void *sock_to_com()
 				fprintf(stdout,"COM <- PC: ");
 				disp_data(buffer,(bytes_in_string+1));
 			}
-			// write the data to the interface and wait for 60000µs
+			// write the data to the interface and wait for 60000ï¿½s
 			write(fd,buffer,(bytes_in_string+1));
 			usleep(60000);
 		}	
@@ -183,7 +183,7 @@ void *com_to_sock()
 {
    unsigned char buffer[100];
    unsigned char recv_data[1];
-   int start_recv= 0, valid, m, bytes_in_string, bytes_recieved;
+   int start_recv= 0, valid = 0, m = 0, bytes_in_string = 0, bytes_recieved;
    char message[8];
    
 	while(1)
@@ -253,7 +253,7 @@ void *com_to_sock()
 				fprintf(stdout,"COM -> PC: ");
 				disp_data(buffer,(bytes_in_string+1));
 			}
-			// write the data to the interface and wait for 60000µs
+			// write the data to the interface and wait for 60000ï¿½s
 			send(sock,buffer,(bytes_in_string+1), 0);
 			//usleep(10000);
 		}	
