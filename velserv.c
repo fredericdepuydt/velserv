@@ -455,7 +455,6 @@ void *server()
 							if (verbose>3)
 							{
 								fprintf(stdout,"Velserv: %s on socket %d hung up\n",ip_add_arr[i], i);
-								free(ip_add_arr[i]);
 							}
 						}
 						else
@@ -467,6 +466,8 @@ void *server()
 						}
 						/* close it... */
 						close(i);
+						free(ip_add_arr[i]);
+						ip_add_arr[i] = NULL;
 						/* remove from master set */
 						FD_CLR(i, &master);
 					}
