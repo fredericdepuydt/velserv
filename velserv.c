@@ -764,7 +764,12 @@ signal(SIGPIPE, SIG_IGN);
     	
 	if (server_on)
 	{
-		iret3 = pthread_create( &thread3, NULL, server, NULL);
+		iret3 = pthread_create(&thread3, NULL, server, NULL);
+		if (iret3 != 0)
+		{
+			fprintf(stderr, "Velserv: cannot start server thread\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 		
 	/*##################################################################################################
@@ -853,8 +858,19 @@ signal(SIGPIPE, SIG_IGN);
         }
         
      
-		iret1 = pthread_create( &thread1, NULL, sock_to_com, NULL);
-		iret2 = pthread_create( &thread2, NULL, com_to_sock, NULL);
+		iret1 = pthread_create(&thread1, NULL, sock_to_com, NULL);
+		if (iret1 != 0)
+		{
+			fprintf(stderr, "Velserv: cannot start socket-to-serial thread\n");
+			exit(EXIT_FAILURE);
+		}
+
+		iret2 = pthread_create(&thread2, NULL, com_to_sock, NULL);
+		if (iret2 != 0)
+		{
+			fprintf(stderr, "Velserv: cannot start serial-to-socket thread\n");
+			exit(EXIT_FAILURE);
+		}
 	}
 	
     while (1) 
