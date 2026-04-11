@@ -594,7 +594,16 @@ static void parse_params(int argc, char **argv)
 		IP_ADDRESS = strdup (optarg);
 		break;
 		case 'p':
-		PORT = atoi(strdup (optarg));
+		{
+			char *endptr = NULL;
+			long parsed_port = strtol(optarg, &endptr, 10);
+			if (*optarg == '\0' || *endptr != '\0' || parsed_port < 1 || parsed_port > 65535)
+			{
+				fprintf(stderr, "Velserv: invalid port '%s'\n", optarg);
+				exit(EXIT_FAILURE);
+			}
+			PORT = (unsigned int)parsed_port;
+		}
 		break;
 	    case 'd':
 		devicename = strdup (optarg);
