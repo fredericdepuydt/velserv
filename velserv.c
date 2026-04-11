@@ -665,8 +665,6 @@ static void parse_params(int argc, char **argv)
 int main (int argc, char **argv)
 {
 
-   char com_mess[100];
-
    struct termios oldtio, newtio;       //place for old and new port settings for serial port
    struct addrinfo hints, *server_addr = NULL;
    int gai_rc;
@@ -708,20 +706,7 @@ int main (int argc, char **argv)
 signal(SIGIO, SIG_IGN);
 signal(SIGPIPE, SIG_IGN);
 
-  /*################################################################################################
-    #		command to configure comports, wierd but needed to use the velbus interface			   #
-	################################################################################################
-  */
-	if(client_on)
-	{
-		sprintf(com_mess,"/bin/stty -F %s 9600 crtscts",devicename);
-		if((system(com_mess))<0){
-			fprintf(stderr,"Velserv: cannot set port (stty)\n"); // 
-			exit(EXIT_FAILURE);
-		}
-	}
-		
-		
+
     /* Our process ID and Session ID */
     pid_t pid, sid;
     if (!foreground) 
@@ -795,30 +780,22 @@ signal(SIGPIPE, SIG_IGN);
 			exit(EXIT_FAILURE);
 		}
 
-		if(cfsetospeed(&newtio, BAUDRATE) < 0 || cfsetispeed(&newtio, BAUDRATE) < 0 || tcsetattr(fd,TCSAFLUSH,&newtio) < 0)
-		{
-			fprintf(stderr,"Velserv: cannot set baud rates\n");
-			exit(EXIT_FAILURE);
-		}
-		
-		memset(&newtio, 0, sizeof(struct termios));
-	
-		if ((tcgetattr(fd,&newtio)) < 0)
-		{
-			fprintf(stderr,"Velserv: cannot read new attribs\n");
-			exit(EXIT_FAILURE);
-		}
-
+		newtio = oldtio;
+		cfmakeraw(&newtio);
 		newtio.c_iflag &= ~(BRKINT | ICRNL | IGNCR | INLCR | INPCK | ISTRIP | IXON | IXOFF | PARMRK);
 		newtio.c_iflag |= IGNBRK | IGNPAR;
 		newtio.c_lflag &= ~(ECHO | ECHOE | ECHOK | ECHONL | ICANON | IEXTEN | ISIG);
 		newtio.c_oflag &= ~(OPOST);
 		newtio.c_cflag &= ~(CSIZE | HUPCL | PARENB);
 		newtio.c_cflag |= (CLOCAL | CS8 | CREAD | CRTSCTS);
-	
 		newtio.c_cc[VMIN] = 1;
 		newtio.c_cc[VTIME] = 1;
-		cfmakeraw(&newtio);
+
+		if(cfsetospeed(&newtio, BAUDRATE) < 0 || cfsetispeed(&newtio, BAUDRATE) < 0)
+		{
+			fprintf(stderr,"Velserv: cannot set baud rates\n");
+			exit(EXIT_FAILURE);
+		}
 		
 		if((tcsetattr(fd, TCSAFLUSH, &newtio)) < 0)
 		{
