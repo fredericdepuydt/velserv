@@ -469,20 +469,34 @@ void *server()
 						{
 							disp_data_full(buf,nbytes);
 						}
-						for(pointer=0; pointer<= nbytes; pointer++)
+						for(pointer = 0; pointer < nbytes; pointer++)
 						{
 							if ((buf[pointer] == 0xF) && (status == 0))
-							{	
+							{
 								status = 1;
-			
+								if ((pointer + 3) >= nbytes)
+								{
+									status = 0;
+									break;
+								}
+
 								bytes_in_string = (buf[pointer+3] & 0xF) + 6;
+								if (bytes_in_string <= 0 || bytes_in_string > (int)sizeof(buffer) || (pointer + bytes_in_string) > nbytes)
+								{
+									if (verbose==5)
+									{
+										fprintf(stderr,"Velserv: invalid frame length\n");
+									}
+									status = 0;
+									continue;
+								}
 								memset(&buffer, 0, sizeof(buffer));
-							
-								for(m = 0; m<= bytes_in_string; m++)
+
+								for(m = 0; m < bytes_in_string; m++)
 								{
 									buffer[m] = buf[m+pointer];
 								}
-							
+
 								if (buf[pointer+bytes_in_string-1] == 0x4)
 								{
 									status = 0;
@@ -495,7 +509,7 @@ void *server()
 									}
 									status = 0;
 								}
-							
+
 								pointer = pointer + bytes_in_string - 1;
 
 								for(j = 0; j <= fdmax; j++)
