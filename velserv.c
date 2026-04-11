@@ -291,7 +291,7 @@ void *server()
 
 	/* for setsockopt() SO_REUSEADDR, below */
 	int yes = 1;
-	int addrlen;
+	socklen_t addrlen;
 	int i, j, m;
 	char *ip_add_arr[100] = {0};
 
