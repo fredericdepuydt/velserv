@@ -643,18 +643,20 @@ static void parse_params(int argc, char **argv)
 	    case 'f':
 		foreground = 1;
 		break;
-	    case 'h':
+    case 'h':
 		usage (stdout, 0);
-	    case 'v':
+		break;
+    case 'v':
 		verbose++;
 		foreground = 1;
 		break;
-	    case 'V':
+    case 'V':
 		version (stdout, 0);
-	    exit (0);
+		break;
 		case '?':
 		usage (stdout, 0);
-	}
+		break;
+}
     }
 }
 
