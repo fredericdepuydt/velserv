@@ -14,7 +14,7 @@ Thank you */
 #include <string.h>
 #include <termios.h>
 #include <getopt.h>
-#include <sys/signal.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
@@ -96,8 +96,9 @@ int disp_data_full(unsigned char*lpData, int nSize)
 }
 
 
-void *sock_to_com()
+void *sock_to_com(void *arg)
 {
+   (void)arg;
    unsigned char buffer[100];
    unsigned char recv_data[1];
    int start_recv = 0, valid = 0, m = 0, bytes_in_string = 0, bytes_recieved;
@@ -179,8 +180,9 @@ void *sock_to_com()
 	}
 }
 
-void *com_to_sock()
+void *com_to_sock(void *arg)
 {
+   (void)arg;
    unsigned char buffer[100];
    unsigned char recv_data[1];
    int start_recv= 0, valid = 0, m = 0, bytes_in_string = 0, bytes_recieved;
@@ -262,8 +264,9 @@ void *com_to_sock()
 	}
 }
 
-void *server()
+void *server(void *arg)
 {
+	(void)arg;
 	/* master file descriptor list */
 	fd_set master;
 
