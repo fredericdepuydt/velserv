@@ -19,6 +19,29 @@ Use this command line to compile for your system
 
 gcc -o velserv velserv.c -lpthread
 
+# Docker on Raspberry Pi 4
+
+The Dockerfile uses the official Alpine Linux image and builds velserv in a
+separate builder stage. On a Raspberry Pi 4 running 64-bit Raspberry Pi OS, use
+the ARM64 platform when cross-building:
+
+docker buildx build --platform linux/arm64 -t velserv --load .
+
+Run the container with the Velbus USB serial device passed through:
+
+docker run --rm --device /dev/ttyACM0 -p 3788:3788 velserv -f -v -d /dev/ttyACM0 -p 3788
+
+The container healthcheck verifies that `/dev/ttyACM0` is available, velserv is
+accepting local TCP connections, and at least one valid Velbus frame is observed
+within five seconds. If you override the serial device or port, pass matching
+environment variables so the healthcheck follows the same settings:
+
+docker run --rm --device /dev/ttyACM1 -e VELSERV_DEVICE=/dev/ttyACM1 -e VELSERV_PORT=6000 -p 6000:6000 velserv -f -v -d /dev/ttyACM1 -p 6000
+
+This is a passive bus-live check: it proves the bridge is seeing real Velbus
+traffic, but a completely idle bus can make the container report unhealthy until
+a module transmits a frame.
+
 Usage: ./velserv -csfvhV] -d DEVICE] -a ADDRESS] -p PORT]
 
 Tip : try to run as root
@@ -90,4 +113,3 @@ systemctl status velserv
 
 # Link to the Velbus forum where Stuart (MDAR) explains how you can get this to work: 
 https://forum.velbus.eu/t/how-to-install-and-run-velserv-a-velbus-tcp-gateway/15422
-
