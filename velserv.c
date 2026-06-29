@@ -264,6 +264,53 @@ void *com_to_sock(void *arg)
 	}
 }
 
+static int is_tls_handshake_probe(const unsigned char *buf, int nbytes)
+{
+	int record_len;
+
+	if (nbytes < 3)
+	{
+		return FALSE;
+	}
+
+	if (buf[0] != 0x16 || buf[1] != 0x03 || buf[2] > 0x04)
+	{
+		return FALSE;
+	}
+
+	if (nbytes >= 5)
+	{
+		record_len = (((int)buf[3]) << 8) | buf[4];
+		if (record_len <= 0)
+		{
+			return FALSE;
+		}
+	}
+
+	if (nbytes >= 6 && buf[5] != 0x01)
+	{
+		return FALSE;
+	}
+
+	return TRUE;
+}
+
+static void reject_tls_handshake(int client_fd, const unsigned char *buf, int nbytes)
+{
+	unsigned char alert[] = {0x15, 0x03, 0x03, 0x00, 0x02, 0x02, 0x28};
+
+	if (nbytes >= 3 && buf[1] == 0x03 && buf[2] <= 0x04)
+	{
+		alert[1] = buf[1];
+		alert[2] = buf[2];
+	}
+
+	if (send(client_fd, alert, sizeof(alert), 0) == -1 && verbose>3)
+	{
+		fprintf(stderr,"Velserv: error sending TLS rejection alert\n");
+	}
+}
+
 void *server(void *arg)
 {
 	(void)arg;
@@ -476,6 +523,20 @@ void *server(void *arg)
 					}
 					else
 					{
+						if (is_tls_handshake_probe(buf, nbytes))
+						{
+							if (verbose>3)
+							{
+								fprintf(stdout,"Velserv: rejecting TLS ClientHello on plain TCP socket %d\n", i);
+							}
+							reject_tls_handshake(i, buf, nbytes);
+							close(i);
+							free(ip_add_arr[i]);
+							ip_add_arr[i] = NULL;
+							FD_CLR(i, &master);
+							continue;
+						}
+
 						/* we got some data from a client*/
 						bytes_in_string = 0;
 						status = 0;

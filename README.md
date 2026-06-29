@@ -42,6 +42,13 @@ This is a passive bus-live check: it proves the bridge is seeing real Velbus
 traffic, but a completely idle bus can make the container report unhealthy until
 a module transmits a frame.
 
+# TLS probes
+
+velserv is a plain TCP Velbus bridge and does not support TLS. If a client first
+sends a TLS ClientHello, velserv returns a fatal TLS handshake failure alert and
+closes that probe connection. Clients that support fallback should then open a
+new plain TCP connection; TLS cannot be downgraded in-place on the same socket.
+
 Usage: ./velserv -csfvhV] -d DEVICE] -a ADDRESS] -p PORT]
 
 Tip : try to run as root
